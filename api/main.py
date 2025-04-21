@@ -49,4 +49,4 @@ async def receber_cadastro(request: Request, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(novo_usuario)
 
-    return JSONResponse(content={"status": "sucesso", "mensagem": "Usuário salvo com sucesso!"})
+    return {"status": "sucesso", "mensagem": "Usuário salvo com sucesso!"}
