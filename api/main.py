@@ -2,8 +2,8 @@ from fastapi import FastAPI, Request, Depends,  HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from .database import SessionLocal
-from .model import Usuario, Pedido  # importa o modelo
+from .database import SessionLocal, engine  
+from .model import Base, Usuario, Pedido  # importa o modelo
 
 # uvicorn main:app --reload
 
@@ -24,6 +24,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+@app.on_event("startup")
+def on_startup():
+    Base.metadata.create_all(bind=engine)
 
 @app.get("/msg")
 def read_root():
