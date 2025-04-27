@@ -200,7 +200,7 @@ def listar_historico(usuario_id: int, db: Session = Depends(get_db)):
     return {"status": "sucesso", "historico": historico}
 
 
-@app.get("endereco/{usuario_id}")
+@app.get("/endereco/{usuario_id}")
 def listar_endereco(usuario_id: int, db: Session = Depends(get_db)):
     usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
 
