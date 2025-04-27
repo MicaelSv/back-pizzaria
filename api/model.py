@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+from datetime import datetime
 
 # rodar isso aqui no terminal pra adicionar as novas tabelas no banco de dados
 #from database import engine
@@ -32,6 +33,7 @@ class Pedido(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     usuario_id = Column(Integer, ForeignKey("usuarios.id"))
+    data_pedido = Column(DateTime, default=datetime.utcnow)
     item = Column(String, nullable=False)
 
     usuario = relationship("Usuario", back_populates="pedidos")

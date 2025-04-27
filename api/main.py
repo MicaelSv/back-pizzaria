@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from .database import SessionLocal, engine  
 from .model import Base, Usuario, Pedido  # importa o modelo
 import numpy as np
+from datetime import datetime
 
 # uvicorn main:app --reload
 
@@ -155,6 +156,24 @@ def recomendar_produtos(usuario_id: int, db: Session = Depends(get_db)):
 @app.get("/historico/{usuario_id}")
 def listar_historico(usuario_id: int, db: Session = Depends(get_db)):
     pedidos = db.query(Pedido).filter(Pedido.usuario_id == usuario_id).all()
-    historico = [pedido.item for pedido in pedidos]
-    
+
+    sabores_pizza = ["Margherita", "Pepperoni", "Quatro Queijos", "Frango com Catupiry", "Calabresa", "Vegetariana"]
+    bebidas = ["Cerveja Budweiser", "Coca-Cola Zero", "Coca-Cola", "Fanta Laranja", "Guaraná Antarctica"]
+
+    historico = []
+    for pedido in pedidos:
+        if pedido.item in sabores_pizza:
+            descricao = f"Pizza {pedido.item}"
+        elif pedido.item in bebidas:
+            descricao = f"Bebida {pedido.item}"
+        else:
+            descricao = pedido.item  # Caso futuro de outro tipo de item
+
+        data_formatada = pedido.data_pedido.strftime("%d/%m/%Y") if pedido.data_pedido else "Data desconhecida"
+
+        historico.append({
+            "descricao": descricao,
+            "data_pedido": data_formatada
+        })
+
     return {"status": "sucesso", "historico": historico}
