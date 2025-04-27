@@ -93,11 +93,22 @@ def recomendar_produtos(usuario_id: int, db: Session = Depends(get_db)):
     sabores_pizza = ["Margherita", "Pepperoni", "Quatro Queijos", "Frango com Catupiry", "Calabresa", "Vegetariana"]
     bebidas = ["Cerveja Budweiser", "Coca-Cola Zero", "Coca-Cola", "Fanta Laranja", "Guaraná Antarctica"]
 
+    # Preços das pizzas
+    precos_pizza = {
+        "Margherita": 45,
+        "Quatro Queijos": 60,
+        "Calabresa": 50,
+        "Pepperoni": 55,
+        "Frango com Catupiry": 55,
+        "Vegetariana": 55
+    }
+
     cardapio = {
         "Pizzas": sabores_pizza,
         "Bebidas": bebidas
     }
 
+    # Funções auxiliares
     def encode_purchase_history(user_purchase_history, cardapio):
         all_items = [item for items in cardapio.values() for item in items]
         encoded_history = np.zeros(len(all_items))
@@ -145,13 +156,23 @@ def recomendar_produtos(usuario_id: int, db: Session = Depends(get_db)):
     recomendacoes = recommend_products(historico_usuario, cardapio)
 
     # Filtrar: 2 pizzas + 2 bebidas
-    pizzas_recomendadas = [r for r in recomendacoes if r in sabores_pizza][:2]
+    pizzas_recomendadas_nomes = [r for r in recomendacoes if r in sabores_pizza][:2]
     bebidas_recomendadas = [r for r in recomendacoes if r in bebidas][:2]
+
+    # Montar pizzas recomendadas com nome + preço
+    pizzas_recomendadas = [
+        {
+            "nome": pizza,
+            "preco": precos_pizza.get(pizza, "Preço não encontrado")
+        }
+        for pizza in pizzas_recomendadas_nomes
+    ]
 
     return {
         "pizzas_recomendadas": pizzas_recomendadas,
         "bebidas_recomendadas": bebidas_recomendadas
     }
+
 
 @app.get("/historico/{usuario_id}")
 def listar_historico(usuario_id: int, db: Session = Depends(get_db)):
@@ -177,3 +198,23 @@ def listar_historico(usuario_id: int, db: Session = Depends(get_db)):
         })
 
     return {"status": "sucesso", "historico": historico}
+
+
+@app.get("endereco/{usuario_id}")
+def listar_endereco(usuario_id: int, db: Session = Depends(get_db)):
+    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+
+    endereco = {
+        "cep": usuario.cep,
+        "endereco": usuario.endereco,
+        "numero": usuario.numero,
+        "complemento": usuario.complemento,
+        "bairro": usuario.bairro,
+        "cidade": usuario.cidade,
+        "estado": usuario.estado
+    }
+
+    return {"status": "sucesso", "endereco": endereco}
