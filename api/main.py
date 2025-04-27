@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from .database import SessionLocal, engine  
 from .model import Base, Usuario, Pedido  # importa o modelo
+import numpy as np
 
 # uvicorn main:app --reload
 
@@ -24,10 +25,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-@app.on_event("startup")
-def on_startup():
-    Base.metadata.create_all(bind=engine)
 
 @app.get("/msg")
 def read_root():
@@ -69,21 +66,95 @@ async def login(request: Request, db: Session = Depends(get_db)):
 
     return {"status": "sucesso", "mensagem": "Login realizado com sucesso!", "usuario_id": usuario.id}
 
-
-from .model import Usuario, Pedido
-
-@app.post("/pedido")
-async def criar_pedido(request: Request, db: Session = Depends(get_db)):
+@app.post("/pedido/{usuario_id}")
+async def criar_pedido(usuario_id: int, request: Request, db: Session = Depends(get_db)):
     dados = await request.json()
-    usuario_id = dados.get("usuario_id")
-    descricao = dados.get("descricao")  # o que o usuário pediu
+    itens_pedidos = dados.get("itens", [])  # Exemplo de payload esperado: {"itens": ["Calabresa", "Guaraná Antarctica"]}
 
-    if not usuario_id or not descricao:
-        raise HTTPException(status_code=400, detail="Dados insuficientes.")
+    for item in itens_pedidos:
+        novo_pedido = Pedido(
+            usuario_id=usuario_id,
+            item=item
+        )
+        db.add(novo_pedido)
 
-    novo_pedido = Pedido(usuario_id=usuario_id, descricao=descricao)
-    db.add(novo_pedido)
     db.commit()
-    db.refresh(novo_pedido)
+    return {"status": "sucesso", "mensagem": "Pedido salvo com sucesso!"}
 
-    return {"status": "sucesso", "mensagem": "Pedido registrado com sucesso!"}
+
+@app.get("/recomendacao/{usuario_id}")
+def recomendar_produtos(usuario_id: int, db: Session = Depends(get_db)):
+    # Busca histórico de pedidos do usuário
+    pedidos = db.query(Pedido).filter(Pedido.usuario_id == usuario_id).all()
+    historico_usuario = [pedido.item for pedido in pedidos]
+
+    # Definindo sabores e bebidas
+    sabores_pizza = ["Margherita", "Pepperoni", "Quatro Queijos", "Frango com Catupiry", "Calabresa", "Vegetariana"]
+    bebidas = ["Cerveja Budweiser", "Coca-Cola Zero", "Coca-Cola", "Fanta Laranja", "Guaraná Antarctica"]
+
+    cardapio = {
+        "Pizzas": sabores_pizza,
+        "Bebidas": bebidas
+    }
+
+    def encode_purchase_history(user_purchase_history, cardapio):
+        all_items = [item for items in cardapio.values() for item in items]
+        encoded_history = np.zeros(len(all_items))
+        for item in user_purchase_history:
+            if item in all_items:
+                encoded_history[all_items.index(item)] = 1
+        return encoded_history
+
+    def create_neural_network(input_size, hidden_size, output_size):
+        np.random.seed(0)
+        W1 = np.random.randn(input_size, hidden_size)
+        b1 = np.zeros(hidden_size)
+        W2 = np.random.randn(hidden_size, output_size)
+        b2 = np.zeros(output_size)
+        return W1, b1, W2, b2
+
+    def relu(x):
+        return np.maximum(0, x)
+
+    def sigmoid(x):
+        return 1 / (1 + np.exp(-x))
+
+    def forward_propagation(X, W1, b1, W2, b2):
+        Z1 = np.dot(X, W1) + b1
+        A1 = relu(Z1)
+        Z2 = np.dot(A1, W2) + b2
+        A2 = sigmoid(Z2)
+        return A2
+
+    def recommend_products(user_purchase_history, cardapio):
+        encoded_history = encode_purchase_history(user_purchase_history, cardapio)
+
+        input_size = len(encoded_history)
+        hidden_size = 10
+        output_size = len(encoded_history)
+
+        W1, b1, W2, b2 = create_neural_network(input_size, hidden_size, output_size)
+        recommendations_encoded = forward_propagation(encoded_history, W1, b1, W2, b2)
+
+        all_items = [item for items in cardapio.values() for item in items]
+        recommendations = [all_items[i] for i in range(len(all_items)) if recommendations_encoded[i] > 0.5 and all_items[i] not in user_purchase_history]
+        return recommendations
+
+    # Fazendo a recomendação
+    recomendacoes = recommend_products(historico_usuario, cardapio)
+
+    # Filtrar: 2 pizzas + 2 bebidas
+    pizzas_recomendadas = [r for r in recomendacoes if r in sabores_pizza][:2]
+    bebidas_recomendadas = [r for r in recomendacoes if r in bebidas][:2]
+
+    return {
+        "pizzas_recomendadas": pizzas_recomendadas,
+        "bebidas_recomendadas": bebidas_recomendadas
+    }
+
+@app.get("/historico/{usuario_id}")
+def listar_historico(usuario_id: int, db: Session = Depends(get_db)):
+    pedidos = db.query(Pedido).filter(Pedido.usuario_id == usuario_id).all()
+    historico = [pedido.item for pedido in pedidos]
+    
+    return {"status": "sucesso", "historico": historico}

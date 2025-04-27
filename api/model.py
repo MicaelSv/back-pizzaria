@@ -1,5 +1,12 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
+
+# rodar isso aqui no terminal pra adicionar as novas tabelas no banco de dados
+#from database import engine
+#from model import Base
+#Base.metadata.create_all(bind=engine)
+
 
 Base = declarative_base()
 
@@ -18,9 +25,13 @@ class Usuario(Base):
     cidade = Column(String)
     estado = Column(String)
 
+    pedidos = relationship("Pedido", back_populates="usuario")
+
 class Pedido(Base):
     __tablename__ = "pedidos"
 
     id = Column(Integer, primary_key=True, index=True)
-    usuario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
-    descricao = Column(String, nullable=False)
+    usuario_id = Column(Integer, ForeignKey("usuarios.id"))
+    item = Column(String, nullable=False)
+
+    usuario = relationship("Usuario", back_populates="pedidos")
