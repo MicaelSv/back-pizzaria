@@ -6,6 +6,7 @@ from .database import SessionLocal, engine
 from .model import Base, Usuario, Pedido  # importa o modelo
 import numpy as np
 from datetime import datetime
+import pytz
 
 # uvicorn main:app --reload
 
@@ -182,7 +183,10 @@ def listar_historico(usuario_id: int, db: Session = Depends(get_db)):
     bebidas = ["Cerveja Budweiser", "Coca-Cola Zero", "Coca-Cola", "Fanta Laranja", "Guaraná Antarctica"]
 
     historico = []
+    br_tz = pytz.timezone('America/Sao_Paulo')  # Definindo o fuso horário de Brasília
+
     for pedido in pedidos:
+        # Determina a descrição do item
         if pedido.item in sabores_pizza:
             descricao = f"Pizza {pedido.item}"
         elif pedido.item in bebidas:
@@ -190,8 +194,14 @@ def listar_historico(usuario_id: int, db: Session = Depends(get_db)):
         else:
             descricao = pedido.item  # Caso futuro de outro tipo de item
 
-        data_formatada = pedido.data_pedido.strftime("%d/%m/%Y") if pedido.data_pedido else "Data desconhecida"
+        # Ajusta o horário para o fuso horário de Brasília e formata a data
+        if pedido.data_pedido:
+            local_time = pedido.data_pedido.astimezone(br_tz)  # Converte para o horário de Brasília
+            data_formatada = local_time.strftime("%d/%m/%Y")
+        else:
+            data_formatada = "Data desconhecida"
 
+        # Adiciona ao histórico
         historico.append({
             "descricao": descricao,
             "data_pedido": data_formatada
