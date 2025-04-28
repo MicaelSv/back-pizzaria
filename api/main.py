@@ -156,9 +156,12 @@ def recomendar_produtos(usuario_id: int, db: Session = Depends(get_db)):
     # Fazendo a recomendação
     recomendacoes = recommend_products(historico_usuario, cardapio)
 
-    # Filtrar: 2 pizzas + 2 bebidas
+    # Filtrar: 2 pizzas (não precisa mais de bebidas)
     pizzas_recomendadas_nomes = [r for r in recomendacoes if r in sabores_pizza][:2]
-    bebidas_recomendadas = [r for r in recomendacoes if r in bebidas][:2]
+
+    # Caso o usuário já tenha pedido todas as pizzas, recomenda 2 pizzas novamente
+    if len(pizzas_recomendadas_nomes) == 0:
+        pizzas_recomendadas_nomes = sabores_pizza[:2]
 
     # Montar pizzas recomendadas com nome + preço
     pizzas_recomendadas = [
@@ -169,10 +172,12 @@ def recomendar_produtos(usuario_id: int, db: Session = Depends(get_db)):
         for pizza in pizzas_recomendadas_nomes
     ]
 
+    # Retorna as pizzas recomendadas (bebidas são mantidas no JSON, mas o frontend não usará)
     return {
         "pizzas_recomendadas": pizzas_recomendadas,
-        "bebidas_recomendadas": bebidas_recomendadas
+        "bebidas_recomendadas": bebidas  # Isso pode ser útil para outros casos, mas não será usado no frontend
     }
+
 
 
 @app.get("/historico/{usuario_id}")
