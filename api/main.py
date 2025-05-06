@@ -35,7 +35,12 @@ def read_root():
 @app.post("/cadastro")
 async def receber_cadastro(request: Request, db: Session = Depends(get_db)):
     dados = await request.json()
-    
+
+    # Verificar se o e-mail já está cadastrado
+    usuario_existente = db.query(Usuario).filter(Usuario.email == dados["email"]).first()
+    if usuario_existente:
+        raise HTTPException(status_code=400, detail="E-mail já cadastrado.")
+
     novo_usuario = Usuario(
         nome=dados["nome"],
         senha=dados["senha"],
