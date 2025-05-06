@@ -28,10 +28,6 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/msg")
-def read_root():
-    return JSONResponse(content={"message": "Hello from FastAPI on Vercel!"})
-
 @app.post("/cadastro")
 async def receber_cadastro(request: Request, db: Session = Depends(get_db)):
     dados = await request.json()
