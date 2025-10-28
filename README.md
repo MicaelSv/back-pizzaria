@@ -46,7 +46,7 @@ O sistema está organizado em módulos independentes, cada um responsável por u
 
 ### 🧠 recomendacao.py
 - **Funcionalidades**:
-  - Rede neural simples para sugestões personalizadas
+  - Rede neural simples para sugestões personalizadas.
   - Recomenda até 2 pizzas não pedidas anteriormente
   - Considera frequência de pedidos passados
   - Retorna:
