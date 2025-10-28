@@ -32,3 +32,5 @@ def listar_historico(usuario_id: int, db: Session = Depends(get_db)):
         data = pedido.data_pedido.astimezone(br_tz).strftime("%d/%m/%Y") if pedido.data_pedido else "Data desconhecida"
         historico.append({"descricao": descricao, "data_pedido": data})
     return {"status": "sucesso", "historico": historico}
+
+print("updated")

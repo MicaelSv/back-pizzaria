@@ -37,3 +37,5 @@ class Pedido(Base):
     item = Column(String, nullable=False)
 
     usuario = relationship("Usuario", back_populates="pedidos")
+
+print("updated")

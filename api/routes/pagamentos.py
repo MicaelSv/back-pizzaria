@@ -22,3 +22,5 @@ def gerar_qrcode(pedido_id: int):
     img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
     return {"status": "sucesso", "qrcode_base64": img_str}
+
+print("updated")

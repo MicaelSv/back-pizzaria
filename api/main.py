@@ -17,3 +17,5 @@ app.include_router(auth.router)
 app.include_router(pedido.router)
 app.include_router(recomendacao.router)
 app.include_router(endereco.router)
+
+print("updated")

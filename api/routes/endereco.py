@@ -29,3 +29,5 @@ def listar_endereco(usuario_id: int, db: Session = Depends(get_db)):
             "estado": usuario.estado
         }
     }
+
+print("updated")

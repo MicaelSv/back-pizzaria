@@ -5,3 +5,5 @@ DATABASE_URL = "postgresql://neondb_owner:npg_JU3dpPSHR8br@ep-round-wildflower-a
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+print("updated")

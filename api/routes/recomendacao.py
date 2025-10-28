@@ -97,3 +97,5 @@ def recomendar_produtos(usuario_id: int, db: Session = Depends(get_db)):
         "pizzas_recomendadas": pizzas_recomendadas,
         "bebidas_recomendadas": bebidas
     }
+
+print("updated")

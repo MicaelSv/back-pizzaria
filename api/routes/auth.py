@@ -33,3 +33,5 @@ async def login(request: Request, db: Session = Depends(get_db)):
     if not usuario:
         raise HTTPException(status_code=401, detail="Email ou senha incorretos.")
     return {"status": "sucesso", "mensagem": "Login realizado com sucesso!", "usuario_id": usuario.id}
+
+print("updated")
