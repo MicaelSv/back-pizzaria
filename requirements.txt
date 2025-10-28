@@ -6,3 +6,4 @@ numpy
 pytz
 qrcode
 pillow
+pandas
